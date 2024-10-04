@@ -25,7 +25,7 @@ class BaselineModel(nn.Module):
             nn.Linear(in_features=fc_hidden, out_features=n_tokens),
         )
 
-    def forward(self, spectrogram, spectrogram_length, **batch):  # spectrogram [B, C, T]
+    def forward(self, spectrogram, spectrogram_length, **batch):  # spectrogram [B, F, T]
         """
         Model forward method.
 
