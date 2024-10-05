@@ -69,7 +69,7 @@ def get_dataloaders(config, text_encoder, device):
     for dataset_partition in config.datasets.keys():
         # dataset partition init
         dataset = instantiate(
-            config.datasets[dataset_partition], text_encoder=text_encoder
+            config.datasets[dataset_partition], text_encoder=text_encoder, dataset_partition=dataset_partition
         )  # instance transforms are defined inside
 
         assert config.dataloader.batch_size <= len(dataset), (

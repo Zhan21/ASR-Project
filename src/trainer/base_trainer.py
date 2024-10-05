@@ -131,7 +131,7 @@ class BaseTrainer:
         self.checkpoint_dir = ROOT_PATH / config.trainer.save_dir / config.writer.run_name
 
         if config.trainer.get("resume_from") is not None:
-            resume_path = self.checkpoint_dir / config.trainer.resume_from
+            resume_path = str(ROOT_PATH / config.trainer.resume_from / "model_best.pth")
             self._resume_checkpoint(resume_path)
 
         if config.trainer.get("from_pretrained") is not None:
@@ -441,9 +441,7 @@ class BaseTrainer:
                 'model_best.pth'(do not duplicate the checkpoint as
                 checkpoint-epochEpochNumber.pth)
         """
-        arch = type(self.model).__name__
         state = {
-            "arch": arch,
             "epoch": epoch,
             "state_dict": self.model.state_dict(),
             "optimizer": self.optimizer.state_dict(),

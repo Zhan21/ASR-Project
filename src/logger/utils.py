@@ -42,21 +42,26 @@ def plot_images(imgs, config):
     return image
 
 
-def plot_spectrogram(spectrogram, name=None):
+def plot_spectrogram(spectrogram):
     """
-    Plot spectrogram
+    Plot spectrograms
 
     Args:
         spectrogram (Tensor): spectrogram tensor.
-        name (None | str): optional name.
     Returns:
         image (Image): image of the spectrogram
     """
-    plt.figure(figsize=(20, 5))
-    plt.pcolormesh(spectrogram)
-    plt.title(name)
+    num_specs = spectrogram.size(0)
+
+    fig, axes = plt.subplots(num_specs, 1, figsize=(5, num_specs))
+    for i in range(num_specs):
+        axes[i].pcolormesh(spectrogram[i])
+        axes[i].set_ylabel(f"{i+1}   ", rotation=0)
+        axes[i].get_xaxis().set_visible(False)
+        axes[i].tick_params(left=False, labelleft=False)
+
     buf = io.BytesIO()
-    plt.savefig(buf, format="png")
+    plt.savefig(buf, format="png", bbox_inches="tight")
     buf.seek(0)
 
     # convert buffer to Tensor

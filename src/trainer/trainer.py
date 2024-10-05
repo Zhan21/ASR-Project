@@ -80,15 +80,21 @@ class Trainer(BaseTrainer):
         if mode == "train":  # the method is called only every self.log_step steps
             self.log_spectrogram(**batch)
         else:
-            # Log Stuff
-            self.log_spectrogram(**batch)
-            self.log_predictions(**batch)
+            self.log_spectrogram(**batch, examples_to_log=10)
+            self.log_predictions(**batch, examples_to_log=10)
+            self.log_audio(**batch, examples_to_log=2)
 
-    def log_spectrogram(self, spectrogram, **batch):
-        spectrogram_for_plot = spectrogram[0].detach().cpu()
-        image = plot_spectrogram(spectrogram_for_plot)
-        self.writer.add_image("spectrogram", image)
-        # self.writer.add_audio("audio", <audio>, sample_rate=16000)
+    def log_audio(self, audio, audio_path, examples_to_log=2, **batch):
+        unique_audio = {}
+        for wav, wav_path in zip(audio, audio_path):
+            unique_audio[Path(wav_path).name] = wav
+        for i, wav in enumerate(unique_audio.values()[:examples_to_log]):
+            self.writer.add_audio(f"audio_{i+1}", wav, sample_rate=16000)
+
+    def log_spectrogram(self, spectrogram, examples_to_log=10, **batch):
+        spectrogram = spectrogram.detach().cpu()[:examples_to_log]
+        spectrogram_img = plot_spectrogram(spectrogram)
+        self.writer.add_image("spectrogram", spectrogram_img)
 
     def log_predictions(self, text, log_probs, log_probs_length, audio_path, examples_to_log=10, **batch):
         # TODO add beam search

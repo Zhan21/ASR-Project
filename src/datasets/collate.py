@@ -19,6 +19,7 @@ def collate_fn(dataset_items: list[dict]):
     spectrogram_length = []
     text_encoded_length = []
     text = []
+    audio = []
     audio_path = []
 
     for item in dataset_items:
@@ -26,6 +27,7 @@ def collate_fn(dataset_items: list[dict]):
         text_encoded_length.append(item["text_encoded"].shape[-1])
 
         text.append(item["text"])
+        audio.append(item["audio"])
         audio_path.append(item["audio_path"])
 
     spectrogram_length = torch.tensor(spectrogram_length)
@@ -50,6 +52,7 @@ def collate_fn(dataset_items: list[dict]):
     result_batch["text_encoded"] = torch.cat(padded_text_encoded, dim=0)  # [B, L]
 
     result_batch["text"] = text
+    result_batch["audio"] = audio
     result_batch["audio_path"] = audio_path
 
     return result_batch

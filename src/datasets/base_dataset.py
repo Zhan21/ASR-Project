@@ -30,6 +30,7 @@ class BaseDataset(Dataset):
         max_text_length=None,
         shuffle_index=False,
         instance_transforms=None,
+        dataset_partition=None,
     ):
         """
         Args:
@@ -51,7 +52,7 @@ class BaseDataset(Dataset):
         self._assert_index_is_valid(index)
 
         index = self._filter_records_from_dataset(index, max_audio_length, max_text_length)
-        index = self._shuffle_and_limit_index(index, limit, shuffle_index)
+        index = self._shuffle_and_limit_index(index, limit, shuffle_index, dataset_partition)
         if not shuffle_index:
             index = self._sort_index(index)
 
@@ -239,7 +240,7 @@ class BaseDataset(Dataset):
         return sorted(index, key=lambda x: x["audio_len"])
 
     @staticmethod
-    def _shuffle_and_limit_index(index, limit, shuffle_index):
+    def _shuffle_and_limit_index(index, limit, shuffle_index, dataset_partition):
         """
         Shuffle elements in index and limit the total number of elements.
 
@@ -257,6 +258,10 @@ class BaseDataset(Dataset):
             random.shuffle(index)
 
         if limit is not None:
-            index = index[:limit] * (len(index) // limit)
+            # this is much faster than inf_loop() over dataloader with one batch
+            if dataset_partition == "train":
+                index = index[:limit] * (len(index) // limit)
+            else:
+                index = index[:limit]
 
         return index
