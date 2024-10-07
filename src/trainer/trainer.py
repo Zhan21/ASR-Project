@@ -78,47 +78,66 @@ class Trainer(BaseTrainer):
 
         # logging scheme might be different for different partitions
         if mode == "train":  # the method is called only every self.log_step steps
-            self.log_spectrogram(**batch)
+            self.log_spectrogram(**batch, examples_to_log=10)
+            self.log_predictions(**batch, examples_to_log=10)
+            self.log_audio(**batch, examples_to_log=1)
         else:
             self.log_spectrogram(**batch, examples_to_log=10)
             self.log_predictions(**batch, examples_to_log=10)
-            self.log_audio(**batch, examples_to_log=2)
+            self.log_audio(**batch, examples_to_log=1)
 
-    def log_audio(self, audio, audio_path, examples_to_log=2, **batch):
+    def log_audio(self, audio, audio_path, examples_to_log=1, **batch):
         unique_audio = {}
         for wav, wav_path in zip(audio, audio_path):
             unique_audio[Path(wav_path).name] = wav
-        for i, wav in enumerate(unique_audio.values()[:examples_to_log]):
-            self.writer.add_audio(f"audio_{i+1}", wav, sample_rate=16000)
+
+        audio_to_log = list(unique_audio.values())[:examples_to_log]
+        for i, wav in enumerate(audio_to_log):
+            self.writer.add_audio(f"audio/{i+1}/part", wav, sample_rate=16000)
 
     def log_spectrogram(self, spectrogram, examples_to_log=10, **batch):
         spectrogram = spectrogram.detach().cpu()[:examples_to_log]
         spectrogram_img = plot_spectrogram(spectrogram)
-        self.writer.add_image("spectrogram", spectrogram_img)
+        self.writer.add_image("spectrogram/part", spectrogram_img)
 
     def log_predictions(self, text, log_probs, log_probs_length, audio_path, examples_to_log=10, **batch):
         # TODO add beam search
         # Note: by improving text encoder and metrics design
         # this logging can also be improved significantly
 
-        argmax_inds = log_probs.cpu().argmax(-1).numpy()
-        argmax_inds = [inds[: int(ind_len)] for inds, ind_len in zip(argmax_inds, log_probs_length.numpy())]
-        argmax_texts_raw = [self.text_encoder.decode(inds) for inds in argmax_inds]
-        argmax_texts = [self.text_encoder.ctc_decode(inds) for inds in argmax_inds]
-        tuples = list(zip(argmax_texts, text, argmax_texts_raw, audio_path))
+        log_probs = log_probs[:examples_to_log].detach().cpu()
+        log_probs_length = log_probs_length[:examples_to_log].detach().cpu()
+
+        argmax_inds = log_probs.argmax(-1)
+        texts_argmax_raw = []
+        texts_argmax = []
+
+        for inds, ind_len in zip(argmax_inds, log_probs_length):
+            inds = inds[:ind_len].numpy()
+            texts_argmax_raw.append(self.text_encoder.decode(inds))
+            texts_argmax.append(self.text_encoder.ctc_decode(inds))
+
+        texts_beamsearch = self.text_encoder.ctc_beam_search(log_probs, log_probs_length, beam_width=100)
+
+        tuples = list(zip(text, texts_argmax_raw, texts_argmax, texts_beamsearch, audio_path))
 
         rows = {}
-        for pred, target, raw_pred, audio_path in tuples[:examples_to_log]:
+        for target, pred_raw, pred, pred_beamsearch, audio_path in tuples:
             target = self.text_encoder.normalize_text(target)
             wer = calc_wer(target, pred) * 100
             cer = calc_cer(target, pred) * 100
+            wer_beamsearch = calc_wer(target, pred_beamsearch) * 100
+            cer_beamsearch = calc_cer(target, pred_beamsearch) * 100
 
             rows[Path(audio_path).name] = {
                 "target": target,
-                "raw prediction": raw_pred,
-                "predictions": pred,
+                "raw argmax": pred_raw,
+                "argmax": pred,
+                "beamsearch": pred_beamsearch,
                 "wer": wer,
                 "cer": cer,
+                "wer_beamsearch": wer_beamsearch,
+                "cer_beamsearch": cer_beamsearch,
                 "audio path": audio_path,
             }
         self.writer.add_table("predictions", pd.DataFrame.from_dict(rows, orient="index"))

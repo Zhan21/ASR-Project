@@ -39,8 +39,8 @@ def collate_fn(dataset_items: list[dict]):
     max_tokens = torch.max(text_encoded_length)
 
     for item in dataset_items:
-        spectrogram = item["spectrogram"]
-        text_encoded = item["text_encoded"]
+        spectrogram = item["spectrogram"]  # [1, C, T]
+        text_encoded = item["text_encoded"]  # [1, L]
 
         padded_spectrogram.append(F.pad(spectrogram, (0, max_spec - spectrogram.shape[-1]), value=0))
         padded_text_encoded.append(F.pad(text_encoded, (0, max_tokens - text_encoded.shape[-1]), value=0))

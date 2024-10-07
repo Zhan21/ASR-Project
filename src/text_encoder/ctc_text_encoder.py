@@ -1,7 +1,12 @@
+import multiprocessing
 import re
+from collections import defaultdict
 from string import ascii_lowercase
 
 import torch
+from pyctcdecode import build_ctcdecoder
+from torchaudio.models.decoder import download_pretrained_files
+from tqdm import tqdm
 
 # add CTC decode
 # TODO add BPE, LM, Beam Search support
@@ -11,15 +16,14 @@ import torch
 
 
 class CTCTextEncoder:
-    EMPTY_TOK = ""
+    EMPTY_TOK = "^"
 
-    def __init__(self, alphabet=None, **kwargs):
+    def __init__(self, alphabet=None, use_lm=True, **kwargs):
         """
         Args:
-            alphabet (list): alphabet for language. If None, it will be
-                set to ascii
+            alphabet (list): alphabet for language. If None, it will be set to ascii
+            lm_path (str): if not None then LM shallow fusion used.
         """
-
         if alphabet is None:
             alphabet = list(ascii_lowercase + " ")
 
@@ -28,6 +32,30 @@ class CTCTextEncoder:
 
         self.ind2char = dict(enumerate(self.vocab))
         self.char2ind = {v: k for k, v in self.ind2char.items()}
+
+        lm_path = None
+
+        if use_lm:
+            lm_path = download_pretrained_files("librispeech-3-gram").lm
+
+            # lm_download_path = ROOT_PATH / "data" / "lm"
+
+            # if not lm_download_path.is_dir():
+            #     lm_download_path.mkdir(exist_ok=True, parents=True)
+
+            # lm_path = lm_download_path / lm_path
+
+            # if not lm_path.is_file():
+            #     wget.download("https://openslr.elda.org/resources/11/3-gram.arpa.gz", str(lm_download_path))
+            # if not vocab_path.is_file():
+            #     wget.download("https://openslr.elda.org/resources/11/librispeech-vocab.txt", str(lm_download_path))
+
+        self.decoder = build_ctcdecoder(
+            labels=["" if t == self.EMPTY_TOK else t for t in self.vocab],
+            kenlm_model_path=lm_path,
+            alpha=0.5,  # weight of lm during shallow fusion
+            beta=1.0,  # weight for length score adjustment of during scoring
+        )
 
     def __len__(self):
         return len(self.vocab)
@@ -57,6 +85,14 @@ class CTCTextEncoder:
         return "".join([self.ind2char[int(ind)] for ind in inds]).strip()
 
     def ctc_decode(self, inds) -> str:
+        """
+        Decoding predicted tokens with CTC.
+
+        Args:
+            inds (list): list of tokens.
+        Returns:
+            text (str): clear text without empty tokens and repetitions.
+        """
         decoded = []
         last_char = self.EMPTY_TOK
 
@@ -68,6 +104,81 @@ class CTCTextEncoder:
                 last_char = ch
 
         return "".join(decoded)
+
+    def _ctc_beam_search_python(self, log_probs, log_probs_length, beam_width=100):
+        """
+        My implementation of CTC decoding on python. Much slower than pyctcdecode version.
+        Do not recommended to use. For educational purposes only.
+        """
+        decoded_texts = []
+
+        for log_probs_line, length in tqdm(zip(log_probs, log_probs_length)):
+            probs = log_probs_line.exp()[:length]
+            decoded_texts.append(self._ctc_beam_search_instance(probs, beam_width))
+
+        return decoded_texts
+
+    def _ctc_beam_search_instance(self, probs, beam_width=100, return_best=True):
+        """
+        Performs CTC decoding with beam search over probabilities.
+        Expands paths, merges them and truncates top `beam_width` texts with highest probability.
+
+        Args:
+            probs (Tensor): array of probabilities (T X V).
+            beam_width (int): number of beams.
+            return_best (bool): if True returns text with highest probability.
+        Returns:
+            hypotheses (list[tuple(str, float)] | str): list of pairs (text, text_prob) or one best text.
+        """
+        assert len(probs.size()) == 2
+        assert probs.size(1) == len(self.ind2char)
+
+        paths = {("", self.EMPTY_TOK): 1.0}
+
+        for frame in probs:
+            expanded_paths = defaultdict(float)
+
+            for i, char_prob in enumerate(frame):
+                for (prefix, last_char), prefix_prob in paths.items():
+                    # last_char is equal to either EMPTY_TOK or last char of prefix
+
+                    char = self.ind2char[i]
+                    if char != last_char:
+                        if char != self.EMPTY_TOK:
+                            prefix = prefix + char
+                        last_char = char
+
+                    # sum probs because p('bca') = p(bcaa) = p(bca) * p(a) + p(bca) * p(^)
+                    expanded_paths[(prefix, last_char)] += prefix_prob * char_prob
+
+            expanded_paths = sorted(expanded_paths.items(), key=lambda x: x[1], reverse=True)
+            paths = dict(expanded_paths[:beam_width])
+
+        hypotheses = [(text, text_prob) for (text, _), text_prob in paths.items()]
+
+        if return_best:
+            return max(hypotheses, key=lambda x: x[1])[0]
+
+        return sorted(hypotheses, key=lambda x: x[1], reverse=True)
+
+    def ctc_beam_search(self, log_probs, log_probs_length, beam_width=100):
+        """
+        Performs CTC decoding with beam search over probabilities.
+        Expands paths, merges them and truncates top `beam_width` texts with highest probability.
+        Always returns top1 result from the beam search.
+
+        Args:
+            log_probs (Tensor): array of log probabilities in batch (B X T X V).
+            log_probs_length (Tensor): array of sequence lengths in batch (B).
+            beam_width (int): number of beams.
+        Returns:
+            texts_decoded (list[str]): list of all decoded texts in batch.
+        """
+
+        with multiprocessing.get_context("fork").Pool() as pool:
+            texts_decoded = self.decoder.decode_batch(pool, log_probs.numpy())
+
+        return texts_decoded
 
     @staticmethod
     def normalize_text(text: str):

@@ -7,46 +7,33 @@ class MaskedCNN(nn.Module):
         super().__init__()
         self.sequential = sequential
 
-    def forward(self, inputs, input_lengths):
+    def forward(self, inputs, lengths):
         """
         Fills each spectrogram with 0 along sequence dim
         because after nn.Conv2d/nn.MaxPool2d sequence length becomes shorter
         Inputs:
             - inputs [B, 1, F, T] ~ in terms of torch notation [B, C, H, W]
-            - input_lengths [B]
+            - lengths [B]
         """
-        outputs = None
-
         for module in self.sequential:
             outputs = module(inputs)
-            mask = torch.BoolTensor(outputs.size()).fill_(0)
-            if outputs.is_cuda:
-                mask = mask.cuda()
+            lengths = self.transform_lengths(module, lengths)
 
-            output_lengths = self.transform_input_lengths(module, input_lengths)
-            for i, new_length in enumerate(output_lengths):
-                length = mask[i].shape[-1]
-                new_length = new_length.item()
-
-                if length - new_length > 0:
-                    mask[i].narrow(dim=2, start=new_length, length=length - new_length).fill_(1)
-
-            outputs = outputs.masked_fill(mask, 0)
+            mask = torch.arange(outputs.size(-1), device=outputs.device) >= lengths.unsqueeze(-1)  # [B, T]
+            outputs.masked_fill_(mask.unsqueeze(1).unsqueeze(2), 0)
             inputs = outputs
-            input_lengths = output_lengths
 
-        return outputs, output_lengths
+        return outputs, lengths
 
-    def transform_input_lengths(self, module, input_lengths):
+    def transform_lengths(self, module, lengths):
         if isinstance(module, nn.Conv2d):
-            numerator = input_lengths + 2 * module.padding[1] - module.dilation[1] * (module.kernel_size[1] - 1) - 1
-            input_lengths = numerator.float() / float(module.stride[1])
-            input_lengths = input_lengths.int() + 1
+            numerator = lengths + 2 * module.padding[1] - module.dilation[1] * (module.kernel_size[1] - 1) - 1
+            lengths = (numerator.float() / float(module.stride[1])).int() + 1
 
         elif isinstance(module, nn.MaxPool2d):
-            input_lengths = input_lengths / 2
+            lengths = lengths / 2
 
-        return input_lengths.int()
+        return lengths.int()
 
 
 class BatchNormRNN(nn.Module):
@@ -84,9 +71,7 @@ class BatchNormRNN(nn.Module):
         inputs = inputs.transpose(1, 2)  # [B, T, H]
         max_length = inputs.size(1)
 
-        inputs = nn.utils.rnn.pack_padded_sequence(
-            inputs, input_lengths.cpu(), batch_first=True, enforce_sorted=False
-        )  # PackedSequence
+        inputs = nn.utils.rnn.pack_padded_sequence(inputs, input_lengths.cpu(), batch_first=True, enforce_sorted=False)
         outputs, _ = self.rnn_block(inputs)
         outputs, _ = nn.utils.rnn.pad_packed_sequence(outputs, total_length=max_length, batch_first=True)  # [B, T, H]
 

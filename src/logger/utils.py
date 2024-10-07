@@ -53,7 +53,7 @@ def plot_spectrogram(spectrogram):
     """
     num_specs = spectrogram.size(0)
 
-    fig, axes = plt.subplots(num_specs, 1, figsize=(5, num_specs))
+    fig, axes = plt.subplots(num_specs, 1, figsize=(10, num_specs * 2))
     for i in range(num_specs):
         axes[i].pcolormesh(spectrogram[i])
         axes[i].set_ylabel(f"{i+1}   ", rotation=0)
