@@ -84,7 +84,7 @@ def get_dataloaders(config, text_encoder, device):
             dataset=dataset,
             collate_fn=collate_fn,
             drop_last=(dataset_partition == "train"),
-            shuffle=config.datasets[dataset_partition].shuffle,
+            shuffle=(dataset_partition == "train"),
             worker_init_fn=set_worker_seed,
         )
         dataloaders[dataset_partition] = partition_dataloader

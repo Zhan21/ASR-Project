@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from datetime import datetime
 
 import torch
 from numpy import inf
@@ -234,6 +235,7 @@ class BaseTrainer:
             val_logs = self._evaluation_epoch(epoch, part, dataloader)
             logs.update(**{f"{part}_{name}": value for name, value in val_logs.items()})
 
+        print("Epoch ended at:", datetime.now())
         return logs
 
     def _evaluation_epoch(self, epoch, part, dataloader):

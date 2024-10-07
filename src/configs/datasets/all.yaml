@@ -2,14 +2,11 @@ train:
   _target_: src.datasets.LibrispeechDataset
   part: "train_all"
   instance_transforms: ${transforms.instance_transforms.train}
-  shuffle: true
 val:
   _target_: src.datasets.LibrispeechDataset
   part: "dev-clean"
   instance_transforms: ${transforms.instance_transforms.inference}
-  shuffle: false
 test:
   _target_: src.datasets.LibrispeechDataset
   part: "test-clean"
   instance_transforms: ${transforms.instance_transforms.inference}
-  shuffle: false
