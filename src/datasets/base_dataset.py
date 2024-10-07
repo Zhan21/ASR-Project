@@ -29,6 +29,7 @@ class BaseDataset(Dataset):
         max_audio_length=None,
         max_text_length=None,
         shuffle_index=False,
+        shuffle=False,  # used for dataloader, ignored here
         instance_transforms=None,
         dataset_partition=None,
     ):

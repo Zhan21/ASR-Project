@@ -19,4 +19,5 @@ datasets
 wget
 editdistance
 pyctcdecode
+flashlight-text
 https://github.com/kpu/kenlm/archive/master.zip

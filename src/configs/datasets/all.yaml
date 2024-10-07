@@ -1,8 +1,8 @@
 train:
   _target_: src.datasets.LibrispeechDataset
-  part: "train-clean-100"
+  part: "train_all"
   instance_transforms: ${transforms.instance_transforms.train}
-  shuffle: false
+  shuffle: true
 val:
   _target_: src.datasets.LibrispeechDataset
   part: "dev-clean"
