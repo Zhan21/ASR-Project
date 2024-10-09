@@ -22,16 +22,25 @@ URL_LINKS = {
 
 
 class LibrispeechDataset(BaseDataset):
-    def __init__(self, part, data_dir=None, *args, **kwargs):
+    def __init__(self, part, data_dir=None, from_kaggle=False, *args, **kwargs):
         assert part in URL_LINKS or part == "train_all"
 
         if data_dir is None:
             data_dir = ROOT_PATH / "data" / "datasets" / "librispeech"
             data_dir.mkdir(exist_ok=True, parents=True)
         self._data_dir = data_dir
+
+        # True if dataset from here: https://www.kaggle.com/datasets/a24998667/librispeech
+        self.from_kaggle = from_kaggle
+
         if part == "train_all":
             index = sum(
                 [self._get_or_load_index(part) for part in URL_LINKS if "train" in part],
+                [],
+            )
+        elif part == "train_clean":
+            index = sum(
+                [self._get_or_load_index(part) for part in URL_LINKS if "train-clean" in part],
                 [],
             )
         else:
@@ -50,24 +59,31 @@ class LibrispeechDataset(BaseDataset):
         shutil.rmtree(str(self._data_dir / "LibriSpeech"))
 
     def _get_or_load_index(self, part):
+        dataset_path = self._data_dir / part
+        if self.from_kaggle:
+            # kaggle working at: kaggle/working/ASR-Project/...
+            # kaggle dataset at: kaggle/input/librispeech/train-clean-100/LibriSpeech/train-clean-100
+            dataset_path = (ROOT / "../../input/librispeech" / part / "LibriSpeech" / part).resolve()
+
+        if not dataset_path.exists():
+            self._load_part(part)
+
         index_path = self._data_dir / f"{part}_index.json"
         if index_path.exists():
             with index_path.open() as f:
                 index = json.load(f)
         else:
-            index = self._create_index(part)
+            index = self._create_index(part, dataset_path)
             with index_path.open("w") as f:
                 json.dump(index, f, indent=2)
+
         return index
 
-    def _create_index(self, part):
+    def _create_index(self, part, dataset_path):
         index = []
-        split_dir = self._data_dir / part
-        if not split_dir.exists():
-            self._load_part(part)
 
         flac_dirs = set()
-        for dirpath, dirnames, filenames in os.walk(str(split_dir)):
+        for dirpath, dirnames, filenames in os.walk(str(dataset_path)):
             if any([f.endswith(".flac") for f in filenames]):
                 flac_dirs.add(dirpath)
         for flac_dir in tqdm(list(flac_dirs), desc=f"Preparing librispeech folders: {part}"):
