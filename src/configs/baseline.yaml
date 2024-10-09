@@ -4,7 +4,7 @@ defaults:
   - metrics: argmax
   - datasets: clean100
   - dataloader: batch_size10
-  - transforms: example_only_instance
+  - transforms: only_instance
   - _self_
 optimizer:
   _target_: torch.optim.AdamW

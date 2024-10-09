@@ -1,5 +1,5 @@
 _target_: src.model.DeepSpeech2
-spec_dim: 128
+spec_dim: 80
 num_rnn_layers: 5
 hidden_size_rnn: 512
 rnn_type: "gru"

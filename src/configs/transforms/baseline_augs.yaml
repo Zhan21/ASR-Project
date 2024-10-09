@@ -1,0 +1,4 @@
+defaults:
+  - batch_transforms: time_freq_masking
+  - instance_transforms: simple
+  - _self_

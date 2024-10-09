@@ -88,11 +88,11 @@ class BaseDataset(Dataset):
         if "audio" in self.instance_transforms.keys():
             audio = self.instance_transforms["audio"](audio)
 
-        spectrogram = self.get_spectrogram(audio)
+        log_spectrogram = self.get_spectrogram(audio)
 
         instance_data = {
             "audio": audio,
-            "spectrogram": spectrogram,
+            "spectrogram": log_spectrogram,
             "text": text,
             "text_encoded": text_encoded,
             "audio_path": audio_path,
@@ -126,7 +126,11 @@ class BaseDataset(Dataset):
         Returns:
             spectrogram (Tensor): spectrogram for the audio.
         """
-        return self.instance_transforms["get_spectrogram"](audio)
+        spectrogram = self.instance_transforms["get_spectrogram"](audio)
+
+        spectrogram[spectrogram > 0] = torch.log(spectrogram[spectrogram > 0])
+
+        return spectrogram
 
     def preprocess_data(self, instance_data):
         """

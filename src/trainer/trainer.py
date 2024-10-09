@@ -78,11 +78,11 @@ class Trainer(BaseTrainer):
 
         # logging scheme might be different for different partitions
         if mode == "train":  # the method is called only every self.log_step steps
-            self.log_spectrogram(**batch, examples_to_log=10)
+            self.log_spectrogram(**batch, examples_to_log=5)
             self.log_predictions(**batch, examples_to_log=10)
             self.log_audio(**batch, examples_to_log=1)
         else:
-            self.log_spectrogram(**batch, examples_to_log=10)
+            self.log_spectrogram(**batch, examples_to_log=5)
             self.log_predictions(**batch, examples_to_log=10)
             self.log_audio(**batch, examples_to_log=1)
 
