@@ -1,5 +1,5 @@
 _target_: src.model.DeepSpeech2
-spec_dim: 80
+spec_dim: ${transforms.instance_transforms.train.get_spectrogram.n_mels}
 num_rnn_layers: 5
 hidden_size_rnn: 512
 rnn_type: "gru"
