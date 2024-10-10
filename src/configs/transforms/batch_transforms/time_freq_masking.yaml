@@ -1,0 +1,10 @@
+train:
+  spectrogram: # name of the tensor on which we apply transform
+    _target_: torch.nn.Sequential # to apply several transforms sequentially
+    _args_:
+      - _target_: src.transforms.spec_augs.TimeMasking
+        time_mask_param: 100
+        p: 0.2  # maximum proportion of time steps that can be masked
+      - _target_: src.transforms.spec_augs.FrequencyMasking
+        freq_mask_param: 20
+inference: null

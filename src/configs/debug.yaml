@@ -1,8 +1,8 @@
 defaults:
-  - model: deepspeech2
+  - model: baseline
   - writer: wandb
   - metrics: argmax
-  - datasets: clean
+  - datasets: clean100
   - dataloader: batch_size10
   - transforms: baseline_augs
   - _self_
@@ -21,9 +21,9 @@ loss_function:
 text_encoder:
   _target_: src.text_encoder.CTCTextEncoder
 trainer:
-  log_step: 500
+  log_step: 50
   n_epochs: 50
-  epoch_len: 2000
+  epoch_len: 200
   device_tensors: ["spectrogram", "text_encoded", "spectrogram_length"] # which tensors should be on device (ex. GPU)
   resume_from: null # null or path to the checkpoint dir with *.pth and config.yaml
   device: auto # device name or "auto"

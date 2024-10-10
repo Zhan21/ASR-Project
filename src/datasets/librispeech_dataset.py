@@ -23,7 +23,7 @@ URL_LINKS = {
 
 class LibrispeechDataset(BaseDataset):
     def __init__(self, part, data_dir=None, from_kaggle=False, *args, **kwargs):
-        assert part in URL_LINKS or part == "train_all"
+        assert part in URL_LINKS or part == "train_all" or part == "train_clean"
 
         if data_dir is None:
             data_dir = ROOT_PATH / "data" / "datasets" / "librispeech"
@@ -63,7 +63,7 @@ class LibrispeechDataset(BaseDataset):
         if self.from_kaggle:
             # kaggle working at: kaggle/working/ASR-Project/...
             # kaggle dataset at: kaggle/input/librispeech/train-clean-100/LibriSpeech/train-clean-100
-            dataset_path = (ROOT / "../../input/librispeech" / part / "LibriSpeech" / part).resolve()
+            dataset_path = (ROOT_PATH / "../../input/librispeech" / part / "LibriSpeech" / part).resolve()
 
         if not dataset_path.exists():
             self._load_part(part)

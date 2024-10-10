@@ -2,7 +2,7 @@ import torch_audiomentations
 from torch import Tensor, nn
 
 
-class Gain(nn.Module):
+class PitchShift(nn.Module):
     def __init__(self, *args, **kwargs):
         """
         Args:
@@ -10,7 +10,7 @@ class Gain(nn.Module):
             p (float): probability of applying transform.
         """
         super().__init__()
-        self._aug = torch_audiomentations.Gain(*args, **kwargs)
+        self._aug = torch_audiomentations.PitchShift(*args, **kwargs)
 
     def __call__(self, data: Tensor):
         """

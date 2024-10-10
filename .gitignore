@@ -101,15 +101,7 @@ ENV/
 .mypy_cache/
 
 # input data, saved log, checkpoints, hydra outputs
-data/datasets/librispeech/dev-clean
-data/datasets/librispeech/test-clean
-data/datasets/librispeech/train-clean-100
-data/datasets/librispeech/train-clean-360
-data/datasets/librispeech/train-clean-500
-data/datasets/librispeech/dev-other
-data/datasets/librispeech/test-other
-data/datasets/dataset_common_voice
-data/lm/
+data/
 input/
 saved/
 wandb/
