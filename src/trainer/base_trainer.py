@@ -132,11 +132,12 @@ class BaseTrainer:
         self.checkpoint_dir = ROOT_PATH / config.trainer.save_dir / config.writer.run_name
 
         if config.trainer.get("resume_from") is not None:
-            resume_path = str(ROOT_PATH / config.trainer.resume_from)
+            resume_path = ROOT_PATH / config.trainer.get("resume_from")
             self._resume_checkpoint(resume_path)
 
         if config.trainer.get("from_pretrained") is not None:
-            self._from_pretrained(config.trainer.get("from_pretrained"))
+            pretrain_path = ROOT_PATH / config.trainer.get("from_pretrained")
+            self._from_pretrained(pretrain_path)
 
     def train(self):
         """
