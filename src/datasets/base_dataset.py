@@ -83,7 +83,6 @@ class BaseDataset(Dataset):
         text = data_dict["text"]
         text_encoded = self.text_encoder.encode(text)
 
-        # TODO think of how to apply wave augs before calculating spectrogram
         # Note: you may want to preserve both audio in time domain and in time-frequency domain for logging
         if "audio" in self.instance_transforms.keys():
             audio_transform = self.instance_transforms["audio"]

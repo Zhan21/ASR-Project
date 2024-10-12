@@ -5,7 +5,7 @@ train:
     n_fft: 1024
     win_length: 1024
     hop_length: 256
-    n_mels: 128
+    n_mels: 80
   audio: # name of the tensor on which we apply transform
     _target_: torchvision.transforms.v2.Compose
     transforms:
@@ -24,4 +24,4 @@ inference:
     n_fft: 1024
     win_length: 1024
     hop_length: 256
-    n_mels: 128
+    n_mels: 80

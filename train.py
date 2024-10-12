@@ -43,8 +43,6 @@ def main(config):
 
     # build model architecture, then print to console
     model = instantiate(config.model, n_tokens=len(text_encoder)).to(device)
-    # batch_example = next(iter(dataloaders["train"]))
-    # input_data_example = [batch_example["spectrogram"], batch_example["spectrogram_length"]]
     summary(model, input_data=None)
 
     # get function handles of loss and metrics

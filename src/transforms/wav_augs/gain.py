@@ -15,7 +15,7 @@ class Gain(nn.Module):
     def __call__(self, data: Tensor):
         """
         Args:
-            data: waveform of shape (batch_size, num_channels, num_samples).
+            data: waveform of size (batch_size, num_channels, num_samples).
         """
         x = data.unsqueeze(1)
         return self._aug(x).squeeze(1)

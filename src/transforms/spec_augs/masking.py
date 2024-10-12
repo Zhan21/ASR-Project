@@ -20,7 +20,7 @@ class TimeMasking(nn.Module):
     def forward(self, spectrogram):
         """
         Args:
-            spectrogram (Tensor): spectrogram batch of shape (B X F X T).
+            spectrogram (Tensor): spectrogram batch of size (B X F X T).
         Returns:
             spectrogram (Tensor): masked spectrograms.
         """
@@ -43,7 +43,7 @@ class FrequencyMasking(nn.Module):
     def forward(self, spectrogram):
         """
         Args:
-            spectrogram (Tensor): spectrogram batch of shape (B X F X T).
+            spectrogram (Tensor): spectrogram batch of size (B X F X T).
         Returns:
             spectrogram (Tensor): masked spectrograms.
         """
