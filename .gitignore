@@ -107,6 +107,9 @@ saved/
 wandb/
 .cometml-runs/
 outputs/
+src/models/conformer/
+src/models/conformer2/
+src/models/conformer3/
 
 # editor, os cache directory
 .vscode/
