@@ -176,7 +176,7 @@ class CTCTextEncoder:
         """
 
         with multiprocessing.get_context("fork").Pool() as pool:
-            texts_decoded = self.decoder.decode_batch(pool, log_probs.numpy())
+            texts_decoded = self.decoder.decode_batch(pool, log_probs.numpy(), beam_width)
 
         return texts_decoded
 
