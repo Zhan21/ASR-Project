@@ -1,0 +1,16 @@
+train:
+  spectrogram:
+    _target_: torch.nn.Sequential
+    _args_:  # SpecAugment paper params for Librispeech
+      - _target_: src.transforms.spec_augs.NTimeMasking
+        time_mask_param: 100
+        p: 1
+        n: 2
+      - _target_: src.transforms.spec_augs.NFrequencyMasking
+        freq_mask_param: 27
+        n: 2
+      # - _target_: src.transforms.spec_augs.TimeStretch  # takes complex-valued arg, should use Spectrogram(power=None)
+      #   n_freq: 80
+      #   hop_length: 40
+      #   fixed_rate: 1  # sampled uniformly [0.7, 1.5] each call
+inference: null

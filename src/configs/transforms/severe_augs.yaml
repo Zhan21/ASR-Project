@@ -1,0 +1,4 @@
+defaults:
+  - batch_transforms: spec_augment
+  - instance_transforms: simple
+  - _self_
