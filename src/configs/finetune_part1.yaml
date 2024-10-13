@@ -2,7 +2,7 @@ defaults:
   - model: deepspeech2
   - writer: wandb
   - metrics: argmax_beamsearch
-  - datasets: other
+  - datasets: train_other
   - dataloader: batch_size64
   - transforms: only_batch
   - _self_

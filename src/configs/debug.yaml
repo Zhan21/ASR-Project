@@ -2,7 +2,7 @@ defaults:
   - model: baseline
   - writer: wandb
   - metrics: argmax
-  - datasets: clean100
+  - datasets: train_clean100
   - dataloader: batch_size10
   - transforms: baseline_augs
   - _self_

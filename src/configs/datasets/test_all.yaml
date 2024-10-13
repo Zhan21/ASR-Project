@@ -2,3 +2,7 @@ test-other:
   _target_: src.datasets.LibrispeechDataset
   part: "test-other"
   instance_transforms: ${transforms.instance_transforms.inference}
+test-clean:
+  _target_: src.datasets.LibrispeechDataset
+  part: "test-clean"
+  instance_transforms: ${transforms.instance_transforms.inference}
