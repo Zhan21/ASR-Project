@@ -107,10 +107,11 @@ saved/
 wandb/
 .cometml-runs/
 outputs/
-src/models/conformer/
-src/models/conformer2/
-src/models/conformer3/
+conformer/
+conformer2/
+conformer3/
 src/configs/conformer_base.yaml
+src/configs/model/conformer.yaml
 
 # editor, os cache directory
 .vscode/
