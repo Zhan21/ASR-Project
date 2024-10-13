@@ -26,7 +26,8 @@ def collate_fn(dataset_items: list[dict]):
         spectrogram_length.append(item["spectrogram"].size(-1))
         text_encoded_length.append(item["text_encoded"].size(-1))
 
-        text.append(item["text"])
+        if "text" in item:
+            text.append(item["text"])
         audio.append(item["audio"])
         audio_path.append(item["audio_path"])
 

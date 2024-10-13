@@ -65,6 +65,7 @@ class BaseTrainer:
 
         self.device = device
         self.skip_oom = skip_oom
+        self.beam_width = 1  # default value
 
         self.logger = logger
         self.log_step = config.trainer.get("log_step", 50)
@@ -238,6 +239,22 @@ class BaseTrainer:
 
         print("Epoch ended at:", datetime.now())
         return logs
+
+    def predict_batch(self, batch, use_beam_search=False):
+        log_probs = batch["log_probs"].detach().cpu()
+        log_probs_length = batch["log_probs_length"].detach().cpu()
+
+        if use_beam_search:
+            predicted = self.text_encoder.ctc_beam_search(log_probs, log_probs_length, beam_width=self.beam_width)
+        else:
+            predicted = []
+            log_probs = torch.argmax(log_probs, dim=-1).numpy()
+            log_probs_length = log_probs_length.numpy()
+
+            for log_prob, length in zip(log_probs, log_probs_length):
+                predicted.append(self.text_encoder.ctc_decode(log_prob[:length]))
+
+        return predicted
 
     def _evaluation_epoch(self, epoch, part, dataloader):
         """

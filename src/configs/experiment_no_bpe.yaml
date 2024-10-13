@@ -21,7 +21,7 @@ loss_function:
 text_encoder:
   _target_: src.text_encoder.CTCTextEncoder
   use_lm: True
-  fusion_rate: 0.5
+  alpha: 0.5
   use_bpe: False
   # train_bpe_on: ["train-clean-100", "train-clean-360"]
   # vocab_size: 100

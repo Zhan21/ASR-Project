@@ -112,6 +112,7 @@ conformer2/
 conformer3/
 src/configs/conformer_base.yaml
 src/configs/model/conformer.yaml
+deepspeech2_other500_finetuned/
 
 # editor, os cache directory
 .vscode/

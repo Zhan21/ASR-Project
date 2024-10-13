@@ -32,7 +32,8 @@ class CTCTextEncoder:
         self,
         alphabet=None,
         use_lm=True,
-        fusion_rate=0.5,
+        alpha=0.5,
+        beta=1,
         use_bpe=False,
         train_bpe_on=["train-clean-100", "train-clean-360"],
         vocab_size=100,
@@ -42,7 +43,8 @@ class CTCTextEncoder:
         Args:
             alphabet (list): alphabet for language. If None, it will be set to ascii
             use_lm (bool): if True then LM shallow fusion used.
-            fusion_rate (float): weight of lm during shallow fusion.
+            alpha (float): weight of lm during shallow fusion.
+            beta (float): weight for length score adjustment of during scoring.
             use_bpe (bool): if True then BPE vocabulary trained and used.
             train_bpe_on (list[str]): on which parts train BPE tokenizer.
             vocab_size (int): size of BPE vocabulary.
@@ -102,8 +104,8 @@ class CTCTextEncoder:
         self.decoder = build_ctcdecoder(
             labels=["" if t == self.EMPTY_TOK else t for t in self.vocab],
             kenlm_model_path=lm_path,
-            alpha=fusion_rate,
-            beta=1.0,  # weight for length score adjustment of during scoring
+            alpha=alpha,
+            beta=beta,
         )
 
     def __len__(self):

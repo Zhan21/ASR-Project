@@ -1,18 +1,20 @@
 defaults:
   - model: deepspeech2
-  - metrics: argmax_beamsearch100
-  - datasets: test_other # we do not want to run inference on training data
-  - dataloader: batch_size64
+  - metrics: argmax_beamsearch_tuned
+  - datasets: test_all # we do not want to run inference on training data
+  - dataloader: batch_size32
   - transforms: no_augs
   - _self_
 text_encoder:
   _target_: src.text_encoder.CTCTextEncoder
   use_lm: True
-  fusion_rate: 0.5
+  alpha: 0.5
+  beta: 2
   use_bpe: False
 inferencer:
+  beam_width: 200
   device_tensors: ["spectrogram", "text_encoded", "spectrogram_length"] # which tensors should be on device (ex. GPU)
   device: auto # device name or "auto"
-  save_path: "example" # any name here, can be a dataset name
-  seed: 1
-  from_pretrained: "deepspeech2_other500_finetuned/model_best.pth" # path to the pretrained model
+  save_path: null # "custom_dir_predictions" # any name here, can be a dataset name
+  seed: 42
+  from_pretrained: "saved/finetune_part3/model_best.pth" # path to the pretrained model

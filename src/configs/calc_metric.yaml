@@ -1,0 +1,11 @@
+defaults:
+  - metrics: argmax_beamsearch_tuned
+  - _self_
+paths:
+  predictions: "data/saved/custom_dir_predictions/test"
+  ground_truth: "data/datasets/custom_test_dir/transcriptions"
+text_encoder:
+  _target_: src.text_encoder.CTCTextEncoder
+  use_lm: True
+  alpha: 0.5
+  use_bpe: False
