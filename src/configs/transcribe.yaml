@@ -1,0 +1,19 @@
+defaults:
+  - model: deepspeech2
+  - datasets: custom_dir
+  - dataloader: batch_size2
+  - transforms: no_augs
+  - _self_
+text_encoder:
+  _target_: src.text_encoder.CTCTextEncoder
+  use_lm: True
+  alpha: 0.5
+  beta: 2
+  use_bpe: False
+inferencer:
+  beam_width: 200
+  device_tensors: ["spectrogram", "text_encoded", "spectrogram_length"] # which tensors should be on device (ex. GPU)
+  device: auto # device name or "auto"
+  save_path: "custom_dir" # "custom_dir_predictions" # any name here, can be a dataset name
+  seed: 42
+  from_pretrained: "saved/checkpoint/model_best.pth" # path to the pretrained model

@@ -1,74 +1,63 @@
-# Automatic Speech Recognition (ASR) with PyTorch
+# ASR Project
 
-<p align="center">
-  <a href="#about">About</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#how-to-use">How To Use</a> •
-  <a href="#credits">Credits</a> •
-  <a href="#license">License</a>
-</p>
+This project aims to create a system that can directly transcribe spoken audio via end-to-end Automatic Speech Recognition (ASR) pipeline. 
 
-## About
+## Model 
+Unofficial implementation of a paper [Deep Speech 2: End-to-End Speech Recognition in English and Mandarin](https://arxiv.org/abs/1512.02595). 
 
-This repository contains a template for solving ASR task with PyTorch. This template branch is a part of the [HSE DLA course](https://github.com/markovka17/dla) ASR homework. Some parts of the code are missing (or do not follow the most optimal design choices...) and students are required to fill these parts themselves (as well as writing their own models, etc.).
+The authors present the end-to-end speech recognition system within a deep learning framework which outperforms traditional approaches. They introduce an architecture which includes CNN and RNN processing steps over Mel Spectrograms. The resulting model is trained on a CTC loss to avoid manual alignment of predicted sequence and time dimension. To make the model streamable instead of a bidirectional RNN we use a unidirectional RNN with a Lookahead convolutions. The future context highly benefits the perfomance and is suitable for online setting. On inference stage the predicted sequence can be constructed using either a standard argmax CTC text deocder or a CTC beam search algorithm. The proposed approach is applicable in noisy environments and can be easily scaled to multiple languages. 
 
-See the task assignment [here](https://github.com/markovka17/dla/tree/2024/hw1_asr).
 
-## Installation
-
-Follow these steps to install the project:
-
-0. (Optional) Create and activate new environment using [`conda`](https://conda.io/projects/conda/en/latest/user-guide/getting-started.html) or `venv` ([`+pyenv`](https://github.com/pyenv/pyenv)).
-
-   a. `conda` version:
-
-   ```bash
-   # create env
-   conda create -n project_env python=PYTHON_VERSION
-
-   # activate env
-   conda activate project_env
-   ```
-
-   b. `venv` (`+pyenv`) version:
-
-   ```bash
-   # create env
-   ~/.pyenv/versions/PYTHON_VERSION/bin/python3 -m venv project_env
-
-   # alternatively, using default python version
-   python3 -m venv project_env
-
-   # activate env
-   source project_env
-   ```
-
-1. Install all required packages
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. Install `pre-commit`:
-   ```bash
-   pre-commit install
-   ```
-
-## How To Use
-
-To train a model, run the following command:
-
-```bash
-python3 train.py -cn=CONFIG_NAME HYDRA_CONFIG_ARGUMENTS
+## Requirements
+All necessary libraries can be downloaded using the command:
+```shell
+pip install -r requirements.txt
 ```
 
-Where `CONFIG_NAME` is a config from `src/configs` and `HYDRA_CONFIG_ARGUMENTS` are optional arguments.
-
-To run inference (evaluate the model or save predictions):
-
-```bash
-python3 inference.py HYDRA_CONFIG_ARGUMENTS
+## Train
+This project utilizes [Hydra](https://hydra.cc) framework, making it easy to customize training parameters and experiment with different settings. \
+To start the learning process you should run the command:
+```shell
+python3 train.py -cn CONFIG_NAME
 ```
+For example, to train using the `pretrain.yaml` configuration:
+```shell
+python3 train.py -cn pretrain
+```
+In folder `src/configs` you can find config files. 
+There are two train configs for your convenience: `pretrain.yaml` and `finetune.yaml` for pretraining and fine-tuning stages respectively.
+
+## Inference
+To start inference (evaluate the model or save predictions) run the command:
+```bash
+python3 inference.py -cn CONFIG_NAME
+```
+There is one inference config `inference.yaml`, where you should specify `save_path` for model predictions. 
+Metrics are evaluated and printed into stdout afterwards. 
+
+
+## Dataset
+By default inference dataset is set to Librispeech, but you can transcribe arbitrary audio files or evaluate transcribed audio using `CustomDirAudioDataset`. \
+Your file tree should look like this:
+```bash
+YourDirectoryWithUtterances
+├── audio
+│   ├── UtteranceID1.wav # may be .flac or .mp3
+│   ├── UtteranceID2.wav
+│   ...
+│
+└── transcriptions # ground truth, may not exist
+    ├── UtteranceID1.txt
+    ├── UtteranceID2.txt
+    ...
+```
+
+Specify path to audio in `src/configs/datasets/custom_dir.yaml` and run the command:
+```bash
+python3 inference.py -cn transcribe
+```
+Transcripted audio you can find in `data/saved`.
+If you want to evaluate transcripted audio then you should also add path to transcriptions, change datasets to `custom_dir` in `inference.yaml` and run the same command with `inference.yaml` config. 
 
 ## Credits
 
