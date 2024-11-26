@@ -1,4 +1,4 @@
-# ASR Project
+# Automatic Speech Recognition Project
 
 This project aims to create a system that can directly transcribe spoken audio via end-to-end Automatic Speech Recognition (ASR) pipeline. 
 
